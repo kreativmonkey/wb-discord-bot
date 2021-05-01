@@ -32,5 +32,12 @@ async def on_message(message):
     # ToDo: Nur alle x Tage oder alle x Meldungen darauf reagieren...
 	if 'hzp' in message.content.lower():
 		await message.channel.send('**Wichtige Informationen** zur **HZP** findest du auch auf unserem Discourse unter: https://talk.wb-student.org/tag/hzp')
+        
+@client.event
+async def on_member_join(member):
+    await member.create_dm()
+    await member.dm_channel.send(
+        f'Hallo {member.name}, wilkommen auf dem WBH-Studenten Discord Server. Als nächstes solltest du dein Studiengang unter #studiengang-zuweisen auswählen. Damit schaltest du die für dich nützlichen Kanäle frei.'
+    )
     
 client.run(TOKEN)
