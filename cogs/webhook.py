@@ -1,5 +1,6 @@
 import os
-
+import hmac
+import hashlib
 
 import aiohttp
 from aiohttp import web
@@ -23,20 +24,31 @@ class Webserver(commands.Cog):
         self.web_server.start()
         self.guild = discord.utils.get(self.client.guilds, name=GUILD)
 
-
         @routes.get('/')
         async def welcome(request):
             return web.Response(text="Hello, world")
 
         @routes.post('/hook')
         async def webhook(request):
+            if request.headers.get('X-Discourse-Instance') != "https://talk.wb-student.org":
+                return 401
+
+            if not request.headers.get('X-Event-Type') != "topic":
+                return 200
+
+            if not request.headers.get('X-Discours-Event') != "topic_created":
+                return 200
+
+            data = await request.json()
+            
             # Authorize the webhook request
             # Hier müssen wir nochmal schauen wie Discourse den Webhook authorisierung
             # umgesetzt hat. Den Token kann man zumindest dort angeben....
-            if not request.headers.get('authorization') == HOOKTOKEN:
+            if not 'X_DISCOURSE_EVENT_SIGNATURE' in request.headers:
                 return 401
 
-            data = await request.json()
+            if hmac.new(str(WEBHOOK_TOKEN), msg=data, digestmod=hashlib.sha256).hexdigest().upper() != request.headers.get('X_DISCOURSE_EVENT_SIGNATURE'):
+                return 401
 
             title = data['topic']['title']
 
@@ -47,7 +59,8 @@ class Webserver(commands.Cog):
             # Hier muss über tags iteriert werden. Ich denke es sollte erstmal passen
             # wenn man nur auf den ersten Channel reagiert der existiert,
             # also vermutlich mit nem lambda ausdruck oder so umsetzen....
-            channel = self.client.get_channel(tags[0])
+            channelname = next(self.getDiscordChannelName(tag) for tag in tags if self.getDiscordChannelName(tag) is not None)
+            channel = self.client.get_channel(channelname)
 
             # Embed muss dann noch erstellt werden. Aktuell haben wir den Titel, es könnte
             # auch noch ein paar andere Infos genutzt werden, die stehen aktuell unten als
