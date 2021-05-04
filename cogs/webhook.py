@@ -78,13 +78,10 @@ class Webserver(commands.Cog):
             print("401 No Signature")
             return false
 
-        if self.get_signature(data) != request.headers.get('X-Discourse-Event-Signature'):
+        signature = hmac.new(HOOKTOKEN, msg=data, digestmod=hashlib.sha256).hexdigest()
+        if signature != request.headers.get('X-Discourse-Event-Signature'):
             print("401 Wrong Signature")
             return false
-
-    def get_signature(self, payload):
-        key = bytes(HOOKTOKEN, 'utf-8')
-        return hmac.new(key=key, msg=payload, digestmod=hashlib.sha256).hexdigest()
 
     def getDiscordChannelName(self, searchstring):
 
