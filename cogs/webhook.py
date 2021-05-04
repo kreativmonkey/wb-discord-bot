@@ -2,6 +2,7 @@ import os
 import hmac
 import hashlib
 import base64
+import json
 
 import aiohttp
 from aiohttp import web
@@ -75,16 +76,16 @@ class Webserver(commands.Cog):
         # umgesetzt hat. Den Token kann man zumindest dort angeben....
         if not 'X-Discourse-Event-Signature' in request.headers:
             print("401 No Signature")
-            return false
+            return False
 
         print(payload)
 
         signature = hmac.new(key=bytes(HOOKTOKEN, 'utf-8'), msg=str(json.dumps(payload)).encode('utf-8'), digestmod=hashlib.sha256).hexdigest()
         if signature != request.headers.get('X-Discourse-Event-Signature'):
-            print("401 Wrong Signature")
-            return false
+            print(f"401 Wrong Signature: {signature}")
+            return False
 
-        return true
+        return True
 
     def getDiscordChannelName(self, searchstring):
 
