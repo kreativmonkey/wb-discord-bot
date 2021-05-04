@@ -30,16 +30,18 @@ class Webserver(commands.Cog):
 
         @routes.post('/hook')
         async def webhook(request):
+            xdisc = "X-Discourse"
+
             print("Calling Webhook")
-            if request.headers.get('X-Discourse-Instance') != "https://talk.wb-student.org":
+            if request.headers.get(f'{xdisc}-Instance') != "https://talk.wb-student.org":
                 print("401 Wrong URL")
                 return 401
 
-            if request.headers.get('X-Discourse-Event-Type') != "topic":
+            if request.headers.get(f'{xdisc}-Event-Type') != "topic":
                 print("200 Wrong Event-Type")
                 return 200
 
-            if request.headers.get('X-Discours-Event') != "topic_created":
+            if request.headers.get(f'{xdics}-Event') != "topic_created":
                 print("200 Wrong Event")
                 return 200
 
@@ -48,11 +50,11 @@ class Webserver(commands.Cog):
             # Authorize the webhook request
             # Hier müssen wir nochmal schauen wie Discourse den Webhook authorisierung
             # umgesetzt hat. Den Token kann man zumindest dort angeben....
-            if not 'X_DISCOURSE_EVENT_SIGNATURE' in request.headers:
+            if not f'{xdisc}-Event-Signature' in request.headers:
                 print("401 No Signature")
                 return 401
 
-            if hmac.new(str(HOOKTOKEN), msg=data, digestmod=hashlib.sha256).hexdigest() != request.headers.get('X_DISCOURSE_EVENT_SIGNATURE'):
+            if hmac.new(str(HOOKTOKEN), msg=data, digestmod=hashlib.sha256).hexdigest() != request.headers.get(f'{xdisc}-Event-Signature'):
                 print("401 Wrong Signature")
                 return 401
 
