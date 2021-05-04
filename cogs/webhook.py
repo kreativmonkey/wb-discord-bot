@@ -1,8 +1,18 @@
-from aiohttp import web
-from discord.ext import commands, tasks
-import discord
 import os
+
+
 import aiohttp
+from aiohttp import web
+
+
+import discord
+from discord.ext import commands, tasks
+from dotenv import load_dotenv
+
+
+load_dotenv()
+GUILD = os.getenv('DISCORD_GUILD')
+HOOKTOKEN = os.getenv('WEBHOOK_TOKEN')
 
 app = web.Application()
 routes = web.RouteTableDef()
@@ -11,29 +21,52 @@ class Webserver(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.web_server.start()
+        self.guild = discord.utils.get(self.client.guilds, name=GUILD)
+
 
         @routes.get('/')
         async def welcome(request):
             return web.Response(text="Hello, world")
 
-        @routes.post('/dbl')
-        async def dblwebhook(request):
-            if request.headers.get('authorization') == '3mErTJMYFt':
-                data = await request.json()
-                user = self.client.get_user(data['user']) or await self.client.fetch_user(data['user'])
-                if user is None:
-                    return
-                _type = f'Tested!' if data['type'] == 'test' else f'Voted!'
-                upvoted_bot = f'<@{data["bot"]}>'
-                embed = discord.Embed(title=_type, colour=discord.Color.blurple())
-                embed.description = f'**Upvoter :** {user.mention} Just {_type}' + f'\n**Upvoted Bot :** {upvoted_bot}'
-                embed.set_thumbnail(url=user.avatar_url)
-                channel = self.client.get_channel(5645646545142312312)
-                await channel.send(embed=embed)
+        @routes.post('/hook')
+        async def webhook(request):
+            # Authorize the webhook request
+            # Hier müssen wir nochmal schauen wie Discourse den Webhook authorisierung
+            # umgesetzt hat. Den Token kann man zumindest dort angeben....
+            if not request.headers.get('authorization') == HOOKTOKEN:
+                return 401
+
+            data = await request.json()
+
+            title = data['topic']['title']
+
+            # Es sollten nur tags mit einer länge >3 und <5 genutzt werden
+            # also muss das hier noch optimiert werden.
+            tags = sorted(data['topic']['tags'], key=len)
+
+            # Hier muss über tags iteriert werden. Ich denke es sollte erstmal passen
+            # wenn man nur auf den ersten Channel reagiert der existiert,
+            # also vermutlich mit nem lambda ausdruck oder so umsetzen....
+            channel = self.client.get_channel(getDiscordChannelName(tags))
+
+            # Embed muss dann noch erstellt werden. Aktuell haben wir den Titel, es könnte
+            # auch noch ein paar andere Infos genutzt werden, die stehen aktuell unten als
+            # Kommentar ;-)
+            await channel.send(embed=embed)
             return 200
 
         self.webserver_port = os.environ.get('PORT', 5000)
         app.add_routes(routes)
+
+
+    def getDiscordChannelName(searchstring):
+
+        # This code will search for the searchstring in the Channel list
+        # If there is a channel that starts with that string it will return the channel name
+        # so you can use the channelname to connect the bot to the channel and send Messages.
+        result_channel = next(channel.name for channel in self.guild.channels if channel.name.startswith(searchstring))
+        return result_channel
+
 
     @tasks.loop()
     async def web_server(self):
@@ -48,3 +81,58 @@ class Webserver(commands.Cog):
 
 def setup(client):
     client.add_cog(Webserver(client))
+
+
+'''
+{
+  "topic": {
+    "tags": [
+      "prüfung",
+      "obk"
+    ],
+    "id": 78,
+    "title": "Erfahrung und Ablauf OBK",
+    "fancy_title": "Erfahrung und Ablauf OBK",
+    "posts_count": 1,
+    "created_at": "2021-05-04T07:24:00.522Z",
+    "views": 1,
+    "reply_count": 0,
+    "like_count": 0,
+    "last_posted_at": "2021-05-04T07:24:00.637Z",
+    "visible": true,
+    "closed": false,
+    "archived": false,
+    "archetype": "regular",
+    "slug": "erfahrung-und-ablauf-obk",
+    "category_id": 9,
+    "word_count": 493,
+    "deleted_at": null,
+    "user_id": 1,
+    "featured_link": null,
+    "pinned_globally": false,
+    "pinned_at": null,
+    "pinned_until": null,
+    "unpinned": null,
+    "pinned": false,
+    "highest_post_number": 1,
+    "deleted_by": null,
+    "has_deleted": false,
+    "bookmarked": false,
+    "participant_count": 1,
+    "thumbnails": null,
+    "created_by": {
+      "id": 1,
+      "username": "kreativmonkey",
+      "name": "Sebastian P.",
+      "avatar_template": "/user_avatar/talk.wb-student.org/kreativmonkey/{size}/4_2.png"
+    },
+    "last_poster": {
+      "id": 1,
+      "username": "kreativmonkey",
+      "name": "Sebastian P.",
+      "avatar_template": "/user_avatar/talk.wb-student.org/kreativmonkey/{size}/4_2.png"
+    },
+    "tags_disable_ads": false
+  }
+}
+'''

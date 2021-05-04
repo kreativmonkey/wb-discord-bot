@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
+HOOKTOKEN = os.getenv('WEBHOOK_TOKEN')
 
 client = commands.Bot(command_prefix = '/')
 

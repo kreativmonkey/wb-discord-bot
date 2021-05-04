@@ -5,8 +5,8 @@ from discord.ext import commands
 from dotenv import load_dotenv
 
 load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
+HOOKTOKEN = os.getenv('WEBHOOK_TOKEN')
 
 class Welcome(commands.Cog):
     
@@ -25,15 +25,6 @@ class Welcome(commands.Cog):
 
         channels = '\n - '.join([channel.name for channel in guild.channels])
         print(f'Guild Channels:\n - {channels}')
-
-        # This code will search for the searchstring in the Channel list
-        # If there is a channel that starts with that string it will return the channel name
-        # so you can use the channelname to connect the bot to the channel and send Messages.
-        search_channel = "aee"
-        result_channel = next(channel.name for channel in guild.channels if channel.name.startswith(search_channel))
-        print(f'\n\n\n{result_channel}')
-
-
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
