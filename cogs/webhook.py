@@ -1,6 +1,7 @@
 import os
 import hmac
 import hashlib
+import base64
 
 import aiohttp
 from aiohttp import web
@@ -45,15 +46,7 @@ class Webserver(commands.Cog):
 
             data = await request.json()
             
-            # Authorize the webhook request
-            # Hier müssen wir nochmal schauen wie Discourse den Webhook authorisierung
-            # umgesetzt hat. Den Token kann man zumindest dort angeben....
-            if not 'X-Discourse-Event-Signature' in request.headers:
-                print("401 No Signature")
-                return 401
-
-            if hmac.new(str(HOOKTOKEN), msg=data, digestmod=hashlib.sha256).hexdigest() != request.headers.get('X-Discourse-Event-Signature'):
-                print("401 Wrong Signature")
+            if not self.checkSignature(request):
                 return 401
 
             title = data['topic']['title']
@@ -77,8 +70,23 @@ class Webserver(commands.Cog):
         self.webserver_port = os.environ.get('PORT', 5000)
         app.add_routes(routes)
 
+    def checkSignature(self, request):
+        # Authorize the webhook request 
+        # Hier müssen wir nochmal schauen wie Discourse den Webhook authorisierung
+        # umgesetzt hat. Den Token kann man zumindest dort angeben....
+        if not 'X-Discourse-Event-Signature' in request.headers:
+            print("401 No Signature")
+            return false
 
-    def getDiscordChannelName(searchstring):
+        if self.get_signature(request.json()) != request.headers.get('X-Discourse-Event-Signature'):
+            print("401 Wrong Signature")
+            return false
+
+    def get_signature(self, payload):
+        key = bytes(HOOKTOKEN, 'utf-8')
+        return hmac.new(key=key, msg=payload, digestmod=hashlib.sha256).hexdigest()
+
+    def getDiscordChannelName(self, searchstring):
 
         # This code will search for the searchstring in the Channel list
         # If there is a channel that starts with that string it will return the channel name
