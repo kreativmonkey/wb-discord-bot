@@ -1,36 +1,32 @@
 import os
-
+import sys
 
 import discord
+from discord.ext import commands
 from dotenv import load_dotenv
+
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
 
-client = discord.Client()
+client = commands.Bot(command_prefix = '/')
 
-@client.event
-async def on_ready():
-    guild = discord.utils.get(client.guilds, name=GUILD)
-    
-    print(
-        f'{client.user} is connected to the following guild:\n'
-        f'{guild.name}(id: {guild.id})'
-    )    
-    
-    channels = '\n - '.join([channel.name for channel in guild.channels])
-    print(f'Guild Channels:\n - {channels}')
-	
-	
-@client.event
-async def on_message(message):
-	if message.author.bot:
-		return
-		
-    # Reagiere auf das kürzel HZP um Informationen für die Hochschulzugangsprüfung an zu zeigen.
-    # ToDo: Nur alle x Tage oder alle x Meldungen darauf reagieren...
-	if 'hzp' in message.content.lower():
-		await message.channel.send('**Wichtige Informationen** zur **HZP** findest du auch auf unserem Discourse unter: https://talk.wb-student.org/tag/hzp')
-    
+@client.command()
+async def load(ctx, extension):
+    client.load_extension(f'cogs.{extension}')
+
+@client.command()
+async def unload(ctx, extension):
+    client.unload_extension(f'cogs.{extension}')
+
+@client.command()
+async def reload(ctx, extension):
+    client.unload_extension(f'cogs.{extension}')
+    client.load_extension(f'cogs.{extension}')
+
+for filename in os.listdir('./cogs'):
+    if filename.endswith('.py'):
+        client.load_extension(f'cogs.{filename[:-3]}')
+
 client.run(TOKEN)
