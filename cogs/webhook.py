@@ -47,7 +47,7 @@ class Webserver(commands.Cog):
             # Hier muss über tags iteriert werden. Ich denke es sollte erstmal passen
             # wenn man nur auf den ersten Channel reagiert der existiert,
             # also vermutlich mit nem lambda ausdruck oder so umsetzen....
-            channel = self.client.get_channel(getDiscordChannelName(tags[0]))
+            channel = self.client.get_channel(self.getDiscordChannelName(tags[0]))
 
             # Embed muss dann noch erstellt werden. Aktuell haben wir den Titel, es könnte
             # auch noch ein paar andere Infos genutzt werden, die stehen aktuell unten als
