@@ -11,6 +11,10 @@ import discord
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 
+try:  # py3
+    from urllib.parse import unquote, urlencode
+except ImportError:
+    from urllib import unquote, urlencode
 
 load_dotenv()
 GUILD = os.getenv('DISCORD_GUILD')
@@ -70,7 +74,7 @@ class Webserver(commands.Cog):
         self.webserver_port = os.environ.get('PORT', 5000)
         app.add_routes(routes)
 
-    def checkSignature(self, request, data):
+    def checkSignature(self, request, payload):
         # Authorize the webhook request 
         # Hier müssen wir nochmal schauen wie Discourse den Webhook authorisierung
         # umgesetzt hat. Den Token kann man zumindest dort angeben....
@@ -78,10 +82,23 @@ class Webserver(commands.Cog):
             print("401 No Signature")
             return false
 
-        signature = hmac.new(HOOKTOKEN, msg=data, digestmod=hashlib.sha256).hexdigest()
+        key = bytes(HOOKTOKEN, 'utf-8')
+        print(payload)
+
+        payload = unquote(payload)
+        if not payload:
+           return false
+
+        decoded = base64.decodestring(payload)
+        if 'nonce' not in decoded:
+            return false
+
+        signature = hmac.new(key=key, msg=payload, digestmod=hashlib.sha256).hexdigest()
         if signature != request.headers.get('X-Discourse-Event-Signature'):
             print("401 Wrong Signature")
             return false
+
+        return true
 
     def getDiscordChannelName(self, searchstring):
 
