@@ -19,9 +19,14 @@ async def on_ready():
         f'{client.user} is connected to the following guild:\n'
         f'{guild.name}(id: {guild.id})'
     )    
-    
+
     channels = '\n - '.join([channel.name for channel in guild.channels])
     print(f'Guild Channels:\n - {channels}')
+
+    # First try to search for Channels
+    search_channel = "aee"
+    result_channel = next(channel.name for channel in guild.channels if channel.name.startswith(search_channel))
+    print(f'\n\n\n{result_channel}')
 	
 	
 @client.event
