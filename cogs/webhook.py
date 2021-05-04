@@ -11,11 +11,6 @@ import discord
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 
-try:  # py3
-    from urllib.parse import unquote, urlencode
-except ImportError:
-    from urllib import unquote, urlencode
-
 load_dotenv()
 GUILD = os.getenv('DISCORD_GUILD')
 HOOKTOKEN = os.getenv('WEBHOOK_TOKEN')
@@ -82,18 +77,9 @@ class Webserver(commands.Cog):
             print("401 No Signature")
             return false
 
-        key = bytes(HOOKTOKEN, 'utf-8')
         print(payload)
 
-        payload = unquote(payload)
-        if not payload:
-           return false
-
-        decoded = base64.decodestring(payload)
-        if 'nonce' not in decoded:
-            return false
-
-        signature = hmac.new(key=key, msg=payload, digestmod=hashlib.sha256).hexdigest()
+        signature = hmac.new(key=bytes(HOOKTOKEN, 'utf-8'), msg=str(json.dumps(payload)).encode('utf-8'), digestmod=hashlib.sha256).hexdigest()
         if signature != request.headers.get('X-Discourse-Event-Signature'):
             print("401 Wrong Signature")
             return false
