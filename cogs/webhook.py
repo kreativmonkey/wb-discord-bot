@@ -35,7 +35,7 @@ class Webserver(commands.Cog):
                 print("401 Wrong URL")
                 return 401
 
-            if request.headers.get('X-Event-Type') != "topic":
+            if request.headers.get('X-Discourse-Event-Type') != "topic":
                 print("200 Wrong Event-Type")
                 return 200
 
