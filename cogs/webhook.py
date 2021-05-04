@@ -47,7 +47,7 @@ class Webserver(commands.Cog):
             if not 'X_DISCOURSE_EVENT_SIGNATURE' in request.headers:
                 return 401
 
-            if hmac.new(str(WEBHOOK_TOKEN), msg=data, digestmod=hashlib.sha256).hexdigest().upper() != request.headers.get('X_DISCOURSE_EVENT_SIGNATURE'):
+            if hmac.new(str(WEBHOOK_TOKEN), msg=data, digestmod=hashlib.sha256).hexdigest() != request.headers.get('X_DISCOURSE_EVENT_SIGNATURE'):
                 return 401
 
             title = data['topic']['title']
