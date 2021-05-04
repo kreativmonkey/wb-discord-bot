@@ -2,6 +2,7 @@ import os
 import sys
 
 import discord
+from discord.ext import commands
 from dotenv import load_dotenv
 
 
@@ -9,53 +10,23 @@ load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
 
-client = discord.Client()
+client = commands.Bot(command_prefix = '/')
 
-@client.event
-async def on_ready():
-    guild = discord.utils.get(client.guilds, name=GUILD)
-    
-    print(
-        f'{client.user} is connected to the following guild:\n'
-        f'{guild.name}(id: {guild.id})'
-    )    
+@client.command()
+async def load(ctx, extension):
+    client.load_extension(f'cogs.{extension}')
 
-    channels = '\n - '.join([channel.name for channel in guild.channels])
-    print(f'Guild Channels:\n - {channels}')
+@client.command()
+async def unload(ctx, extension):
+    client.unload_extension(f'cogs.{extension}')
 
-    # This code will search for the searchstring in the Channel list
-    # If there is a channel that starts with that string it will return the channel name
-    # so you can use the channelname to connect the bot to the channel and send Messages.
-    search_channel = "aee"
-    result_channel = next(channel.name for channel in guild.channels if channel.name.startswith(search_channel))
-    print(f'\n\n\n{result_channel}')
-	
-	
-@client.event
-async def on_message(message):
-	if message.author.bot:
-		return
-		
-    # Reagiere auf das kürzel HZP um Informationen für die Hochschulzugangsprüfung an zu zeigen.
-    # ToDo: Nur alle x Tage oder alle x Meldungen darauf reagieren...
-	if 'hzp' in message.content.lower():
-		await message.channel.send('**Wichtige Informationen** zur **HZP** findest du auch auf unserem Discourse unter: https://talk.wb-student.org/tag/hzp')
-        
-@client.event
-async def on_member_join(member):
-    # Sending DM to new User with a Welcome message and Informations about the Discord and Discourse server.
-    await member.create_dm()
-    await member.dm_channel.send(
-        f'Hallo {member.name}, wilkommen auf dem WBH-Studenten Discord Server. Als nächstes solltest du dein Studiengang unter #studiengang-zuweisen auswählen. Damit schaltest du die für dich nützlichen Kanäle frei.'
-    )
-    
-@client.event
-async def on_error(event, *args, **kwargs):
-    with open('err.log', 'a') as f:
-        if event == 'on_message':
-            f.write(f'Unhandled message: {args[0]}\n')
-        else:
-            raise
+@client.command()
+async def reload(ctx, extension):
+    client.unload_extension(f'cogs.{extension}')
+    client.load_extension(f'cogs.{extension}')
 
-    
+for filename in os.listdir('./cogs'):
+    if filename.endswith('.py'):
+        client.load_extension(f'cogs.{filename[:-3]}')
+
 client.run(TOKEN)
