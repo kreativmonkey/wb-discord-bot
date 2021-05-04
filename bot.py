@@ -35,9 +35,19 @@ async def on_message(message):
         
 @client.event
 async def on_member_join(member):
+    # Sending DM to new User with a Welcome message and Informations about the Discord and Discourse server.
     await member.create_dm()
     await member.dm_channel.send(
         f'Hallo {member.name}, wilkommen auf dem WBH-Studenten Discord Server. Als nächstes solltest du dein Studiengang unter #studiengang-zuweisen auswählen. Damit schaltest du die für dich nützlichen Kanäle frei.'
     )
+    
+@client.event
+async def on_error(event, *args, **kwargs):
+    with open('err.log', 'a') as f:
+        if event == 'on_message':
+            f.write(f'Unhandled message: {args[0]}\n')
+        else:
+            raise
+
     
 client.run(TOKEN)
