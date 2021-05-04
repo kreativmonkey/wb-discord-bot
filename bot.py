@@ -23,7 +23,9 @@ async def on_ready():
     channels = '\n - '.join([channel.name for channel in guild.channels])
     print(f'Guild Channels:\n - {channels}')
 
-    # First try to search for Channels
+    # This code will search for the searchstring in the Channel list
+    # If there is a channel that starts with that string it will return the channel name
+    # so you can use the channelname to connect the bot to the channel and send Messages.
     search_channel = "aee"
     result_channel = next(channel.name for channel in guild.channels if channel.name.startswith(search_channel))
     print(f'\n\n\n{result_channel}')
