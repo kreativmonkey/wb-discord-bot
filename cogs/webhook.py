@@ -46,7 +46,7 @@ class Webserver(commands.Cog):
 
             data = await request.json()
             
-            if not self.checkSignature(request):
+            if not self.checkSignature(request, data):
                 return 401
 
             title = data['topic']['title']
@@ -70,7 +70,7 @@ class Webserver(commands.Cog):
         self.webserver_port = os.environ.get('PORT', 5000)
         app.add_routes(routes)
 
-    def checkSignature(self, request):
+    def checkSignature(self, request, data):
         # Authorize the webhook request 
         # Hier müssen wir nochmal schauen wie Discourse den Webhook authorisierung
         # umgesetzt hat. Den Token kann man zumindest dort angeben....
@@ -78,7 +78,7 @@ class Webserver(commands.Cog):
             print("401 No Signature")
             return false
 
-        if self.get_signature(request.json()) != request.headers.get('X-Discourse-Event-Signature'):
+        if self.get_signature(data) != request.headers.get('X-Discourse-Event-Signature'):
             print("401 Wrong Signature")
             return false
 
