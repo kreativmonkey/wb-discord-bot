@@ -38,7 +38,7 @@ class Webserver(commands.Cog):
         async def webhook(request):
             print("Calling Webhook")
             # Authorize the request
-            if not self.authorizedRequest(request):
+            if not self.authorizedRequest(request, await request.read()):
                 print('401 Unauthorized')
                 return web.Response(text=json.dumps("{ 'status' : 'unauthorized' }"))
 
@@ -84,7 +84,7 @@ class Webserver(commands.Cog):
 
     # Verify the Webhook Signature
     # The X-Discourse-Event-Signature consists of 'sha256=' hmac of raw payload.
-    def authorizedRequest(self, request):
+    def authorizedRequest(self, request, payload):
         # Is the request from the right Instance
         if request.headers.get('X-Discourse-Instance') != "https://talk.wb-student.org":
             return False
@@ -94,7 +94,6 @@ class Webserver(commands.Cog):
             return False
 
         # Generate the signature from the raw payload with sha256 and hmac
-        payload = request.read()
         signature = hmac.new(key=bytes(HOOKTOKEN, 'utf-8'), msg=payload, digestmod=hashlib.sha256).hexdigest()
         
         # Check if the signature is simular to the signature in the header by cutting of 'sha256'
