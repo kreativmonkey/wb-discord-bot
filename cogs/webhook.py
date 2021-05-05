@@ -56,6 +56,8 @@ class Webserver(commands.Cog):
             data = await request.json()
 
             title = data['topic']['title']
+            topicid = data['topic']['id']
+            created_by = data['topic']['created_by']['username']
             print(title)
 
             # Es sollten nur tags mit einer länge >3 und <5 genutzt werden
@@ -71,11 +73,11 @@ class Webserver(commands.Cog):
 
             channel = self.client.get_channel(channelid)
 
-            embed=discord.Embed(title='Neues Thema', description=title)
+        
             # Embed muss dann noch erstellt werden. Aktuell haben wir den Titel, es könnte
             # auch noch ein paar andere Infos genutzt werden, die stehen aktuell unten als
             # Kommentar ;-)
-            await channel.send(embed)
+            await channel.send(f'Neues Thema **Title** {title} \n https://talk.wb-student.org/t/{topicid} erstellt von @{created_by}')
             return 200
 
         self.webserver_port = os.environ.get('PORT', 5000)
