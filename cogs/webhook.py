@@ -22,7 +22,11 @@ class Webserver(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.web_server.start()
-        self.guild = discord.utils.get(self.client.guilds, name=GUILD)
+
+        @commands.Cog.listener()
+        async def on_ready(self):
+            self.guild = discord.utils.get(client.guilds, name=GUILD)
+
 
         @routes.get('/')
         async def welcome(request):
@@ -31,6 +35,11 @@ class Webserver(commands.Cog):
         @routes.post('/hook')
         async def webhook(request):
             print("Calling Webhook")
+            # Validate the Request
+            if not self.checkSignature(request, await request.read()):
+                return 401
+
+            # Is the request from the right Instance
             if request.headers.get('X-Discourse-Instance') != "https://talk.wb-student.org":
                 print("401 Wrong URL")
                 return 401
@@ -45,10 +54,10 @@ class Webserver(commands.Cog):
 
             data = await request.json()
             
-            if not self.checkSignature(request, await request.read()):
-                return 401
+            
 
             title = data['topic']['title']
+            print(title)
 
             # Es sollten nur tags mit einer länge >3 und <5 genutzt werden
             # also muss das hier noch optimiert werden.
@@ -64,7 +73,7 @@ class Webserver(commands.Cog):
             # auch noch ein paar andere Infos genutzt werden, die stehen aktuell unten als
             # Kommentar ;-)
             await channel.send(embed=embed)
-            return 200
+            return 201
 
         self.webserver_port = os.environ.get('PORT', 5000)
         app.add_routes(routes)
