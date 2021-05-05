@@ -2,6 +2,7 @@ import os
 import hmac
 import hashlib
 import base64
+import json
 
 import aiohttp
 from aiohttp import web
@@ -39,15 +40,15 @@ class Webserver(commands.Cog):
             # Authorize the request
             if not self.authorizedRequest(request):
                 print('401 Unauthorized')
-                return web.Respnose(text=json.dumps("{ 'status' : 'unauthorized' }"))
+                return web.Response(text=json.dumps("{ 'status' : 'unauthorized' }"))
 
             if request.headers.get('X-Discourse-Event-Type') != "topic":
                 print("202 Wrong Event-Type")
-                return web.Respnose(text=json.dumps("{ 'status' : 'wrong event type' }"))
+                return web.Response(text=json.dumps("{ 'status' : 'wrong event type' }"))
 
             if request.headers.get('X-Discourse-Event') != "topic_created":
                 print("202 Wrong Event")
-                return web.Respnose(text=json.dumps("{ 'status' : 'wrong event' }"))
+                return web.Response(text=json.dumps("{ 'status' : 'wrong event' }"))
 
             data = await request.json()
 
@@ -60,7 +61,7 @@ class Webserver(commands.Cog):
             # also vermutlich mit nem lambda ausdruck oder so umsetzen....
             channelid = self.getDiscordChannelId(tags)
             if channelid == None:
-                return web.Respnose(text=json.dumps("{ 'status' : 'no content' }"))
+                return web.Response(text=json.dumps("{ 'status' : 'no content' }"))
 
             channel = self.client.get_channel(channelid)
             
@@ -69,14 +70,14 @@ class Webserver(commands.Cog):
             created_by = data['topic']['created_by']['username']
             print(title)
 
-            message = f'Neues Thema **{title}** \n https://talk.wb-student.org/t/{topicid} erstellt von @{created_by}'
+            message = f'**Neues Thema auf Discourse**\n\n **{title}** \n https://talk.wb-student.org/t/{topicid} erstellt von @{created_by}'
         
             # Embed muss dann noch erstellt werden. Aktuell haben wir den Titel, es könnte
             # auch noch ein paar andere Infos genutzt werden, die stehen aktuell unten als
             # Kommentar ;-)
             print(f'Send Message: {message}')
             await channel.send(message)
-            return web.Respnose(text=json.dumps("{ 'status' : 'success' }"))
+            return web.Response(text=json.dumps("{ 'status' : 'success' }"))
 
         self.webserver_port = os.environ.get('PORT', 5000)
         app.add_routes(routes)
@@ -93,7 +94,7 @@ class Webserver(commands.Cog):
             return False
 
         # Generate the signature from the raw payload with sha256 and hmac
-        payload = await request.read()
+        payload = request.read()
         signature = hmac.new(key=bytes(HOOKTOKEN, 'utf-8'), msg=payload, digestmod=hashlib.sha256).hexdigest()
         
         # Check if the signature is simular to the signature in the header by cutting of 'sha256'
