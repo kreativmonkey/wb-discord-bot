@@ -22,6 +22,7 @@ class Webserver(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.web_server.start()
+        self.guild = None 
 
         @commands.Cog.listener()
         async def on_ready(self):
@@ -64,16 +65,18 @@ class Webserver(commands.Cog):
             # Hier muss über tags iteriert werden. Ich denke es sollte erstmal passen
             # wenn man nur auf den ersten Channel reagiert der existiert,
             # also vermutlich mit nem lambda ausdruck oder so umsetzen....
-            channelname = self.getDiscordChannelName(tags)
-            if channelname != None:
-                channel = self.client.get_channel(channelname)
+            channelid = self.getDiscordChannelId(tags)
+            if channelid == None:
+                return 200
+
+            channel = self.client.get_channel(channelid)
 
             embed=discord.Embed(title='Neues Thema', description=title)
             # Embed muss dann noch erstellt werden. Aktuell haben wir den Titel, es könnte
             # auch noch ein paar andere Infos genutzt werden, die stehen aktuell unten als
             # Kommentar ;-)
             await channel.send(embed)
-            return 201
+            return 200
 
         self.webserver_port = os.environ.get('PORT', 5000)
         app.add_routes(routes)
@@ -97,8 +100,10 @@ class Webserver(commands.Cog):
         print('Verified Request!')
         return True
 
-    def getDiscordChannelName(self, search):
+    def getDiscordChannelId(self, search):
         search.sort(key=len)
+        self.guild = discord.utils.get(self.client.guilds, name=GUILD)
+
         # This code will search for the searchstring in the Channel list
         # If there is a channel that starts with that string it will return the channel name
         # so you can use the channelname to connect the bot to the channel and send Messages.
@@ -111,8 +116,11 @@ class Webserver(commands.Cog):
 
         if result_channel == -1:
             return None
+        
+        # Get the channel to return channelid
+        channel = discord.utils.get(self.guild.channels, name=result_channel)
+        return channel.id
 
-        return result_channel
 
 
     @tasks.loop()
