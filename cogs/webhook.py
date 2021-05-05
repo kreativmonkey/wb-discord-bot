@@ -19,6 +19,17 @@ HOOKTOKEN = os.getenv('WEBHOOK_TOKEN')
 app = web.Application()
 routes = web.RouteTableDef()
 
+categories = {
+    9 : "Erfahrungsbericht", 
+    3 : "Teamtalk",
+    5 : "Modulthemen",
+    11 : "Tipps und Tricks",
+    7 : "Stammtisch",
+    12 : "WBH-Beschwerden",
+    10 : "Wissenssammlung",
+}
+
+
 class Webserver(commands.Cog):
     def __init__(self, client):
         self.client = client
@@ -68,9 +79,10 @@ class Webserver(commands.Cog):
             title = data['topic']['title']
             topicid = data['topic']['id']
             created_by = data['topic']['created_by']['username']
+            categorie = categories[data['topic']['category_id']]
             print(title)
 
-            message = f'**Neues Thema auf Discourse**\n\n **{title}** \n https://talk.wb-student.org/t/{topicid} erstellt von @{created_by}'
+            message = f'**Neues Thema in {categorie}**\n\n **{title}** \n https://talk.wb-student.org/t/{topicid} erstellt von @{created_by}'
         
             # Embed muss dann noch erstellt werden. Aktuell haben wir den Titel, es könnte
             # auch noch ein paar andere Infos genutzt werden, die stehen aktuell unten als
