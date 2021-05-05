@@ -55,11 +55,6 @@ class Webserver(commands.Cog):
 
             data = await request.json()
 
-            title = data['topic']['title']
-            topicid = data['topic']['id']
-            created_by = data['topic']['created_by']['username']
-            print(title)
-
             # Es sollten nur tags mit einer länge >3 und <5 genutzt werden
             # also muss das hier noch optimiert werden.
             tags = data['topic']['tags']
@@ -72,12 +67,19 @@ class Webserver(commands.Cog):
                 return 200
 
             channel = self.client.get_channel(channelid)
+            
+            title = data['topic']['title']
+            topicid = data['topic']['id']
+            created_by = data['topic']['created_by']['username']
+            print(title)
 
+            message = f'Neues Thema **Title** {title} \n https://talk.wb-student.org/t/{topicid} erstellt von @{created_by}'
         
             # Embed muss dann noch erstellt werden. Aktuell haben wir den Titel, es könnte
             # auch noch ein paar andere Infos genutzt werden, die stehen aktuell unten als
             # Kommentar ;-)
-            await channel.send(f'Neues Thema **Title** {title} \n https://talk.wb-student.org/t/{topicid} erstellt von @{created_by}')
+            print(f'Send Message: {message}')
+            await channel.send(message)
             return 200
 
         self.webserver_port = os.environ.get('PORT', 5000)
@@ -103,9 +105,11 @@ class Webserver(commands.Cog):
         return True
 
     def getDiscordChannelId(self, search):
+        if not search:
+            return None
+
         search.sort(key=len)
         self.guild = discord.utils.get(self.client.guilds, name=GUILD)
-
         # This code will search for the searchstring in the Channel list
         # If there is a channel that starts with that string it will return the channel name
         # so you can use the channelname to connect the bot to the channel and send Messages.
