@@ -1,8 +1,12 @@
 import os
 import discord
-from discord.ext import commands
 import requests
+import json
+import re  # regex
+
+from discord.ext import commands
 from dotenv import load_dotenv
+
 
 BASEURL = 'https://talk.wb-student.org/'
 
@@ -30,8 +34,11 @@ class Reaction(commands.Cog):
     # search for a given value in the discourse forum under the BASEURL.
     # to search for posts with tags the searchValue can be like 'tag:sei,bsra'
     # to search for posts from an user the searchValue can be like '@kreativemonkey'
-    @commands.command()
-    async def search(self, ctx, searchValue):
+    @commands.command(
+        help="Sucht nach einem Wert <searchValue> und gibt maximal <maxResult> Beiträge zurück.\r\n <maxResult>:default(3)",
+        brief="Sucht nach einem Wert und gibt die gefundenen Beiträgen zurück."
+    )
+    async def search(self, ctx, searchValue, maxResult=3):
         requestUrl = BASEURL + 'search.json'
         HEADERS = {'Api-Key': APIKEY, 'Api-Username': APIUSERNAME}
         # defining a params dict for the parameters to be sent to the API
@@ -39,13 +46,40 @@ class Reaction(commands.Cog):
         # sending get request and saving the response as response object
         r = requests.get(url=requestUrl, params=PARAMS, headers=HEADERS)
 
-        # extracting data in json format
+        # extracting data in json format and get the first 3 found results
         data = r.json()
-        print(data)
-        # the data have to shorten because its to long
-        await ctx.send(data)
+        chatMessages = self.makeChatResponse(data, maxResult)
 
-        # await ctx.send(r.content)
+        for message in chatMessages:
+            # escape urls in blurb-string with beautiful regex so the urls wouldn't preview in discord-chat
+            escapedBlurb = re.sub(
+                r"((?:http|https)://[\w+?\.\w+]+(?:[a-zA-Z0-9\~\!\@\#\$\%\^\&\*\(\)_\-\=\+\\\/\?\.\:\;\'\,]*)?)", r'<\1>', message['blurb'])
+            await ctx.send('**Title: ' + message['title'] + '**\r\n' + message['uri'] + '\r\n**Ausschnitt:**\r\n' + escapedBlurb)
+
+    def makeChatResponse(self, jsonData, maxMessageCounter):
+        result = []
+        # foreach posts in the json response ...
+        for post in jsonData['posts']:
+            # ...check if the result has reached the maxMessageCounter...
+            if len(result) != maxMessageCounter:
+                # ...get the topicId of the found post to filter for...
+                topicId = post['topic_id']
+                # ...the topic to get the title of the topic...
+                topic = list(filter(lambda x: x['id'] == topicId and (
+                    not x['closed'] or not x['archived']), jsonData['topics']))
+
+                if topic:
+                    # ...and append a new object to the result.
+                    chatMessage = {}
+                    chatMessage['title'] = topic[0]['title']
+                    chatMessage['uri'] = BASEURL + 't/' + str(topicId)
+                    chatMessage['blurb'] = post['blurb']
+                    result.append(chatMessage)
+            else:
+                # if result reached the limit => breaking the law
+                break
+
+        return result
 
 
 def setup(client):
