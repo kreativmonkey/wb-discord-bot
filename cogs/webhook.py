@@ -36,22 +36,18 @@ class Webserver(commands.Cog):
         @routes.post('/hook')
         async def webhook(request):
             print("Calling Webhook")
-            # Validate the Request
-            if not self.checkSignature(request, await request.read()):
-                return 401
-
-            # Is the request from the right Instance
-            if request.headers.get('X-Discourse-Instance') != "https://talk.wb-student.org":
-                print("401 Wrong URL")
-                return 401
+            # Authorize the request
+            if not self.authorizedRequest(request):
+                print('401 Unauthorized')
+                return web.Respnose(text=json.dumps("{ 'status' : 'unauthorized' }"))
 
             if request.headers.get('X-Discourse-Event-Type') != "topic":
-                print("200 Wrong Event-Type")
-                return 200
+                print("202 Wrong Event-Type")
+                return web.Respnose(text=json.dumps("{ 'status' : 'wrong event type' }"))
 
             if request.headers.get('X-Discourse-Event') != "topic_created":
-                print("200 Wrong Event")
-                return 200
+                print("202 Wrong Event")
+                return web.Respnose(text=json.dumps("{ 'status' : 'wrong event' }"))
 
             data = await request.json()
 
@@ -64,7 +60,7 @@ class Webserver(commands.Cog):
             # also vermutlich mit nem lambda ausdruck oder so umsetzen....
             channelid = self.getDiscordChannelId(tags)
             if channelid == None:
-                return 200
+                return web.Respnose(text=json.dumps("{ 'status' : 'no content' }"))
 
             channel = self.client.get_channel(channelid)
             
@@ -73,28 +69,31 @@ class Webserver(commands.Cog):
             created_by = data['topic']['created_by']['username']
             print(title)
 
-            message = f'Neues Thema **Title** {title} \n https://talk.wb-student.org/t/{topicid} erstellt von @{created_by}'
+            message = f'Neues Thema **{title}** \n https://talk.wb-student.org/t/{topicid} erstellt von @{created_by}'
         
             # Embed muss dann noch erstellt werden. Aktuell haben wir den Titel, es könnte
             # auch noch ein paar andere Infos genutzt werden, die stehen aktuell unten als
             # Kommentar ;-)
             print(f'Send Message: {message}')
             await channel.send(message)
-            return 200
+            return web.Respnose(text=json.dumps("{ 'status' : 'success' }"))
 
         self.webserver_port = os.environ.get('PORT', 5000)
         app.add_routes(routes)
 
     # Verify the Webhook Signature
     # The X-Discourse-Event-Signature consists of 'sha256=' hmac of raw payload.
-    def checkSignature(self, request, payload):
+    def authorizedRequest(self, request):
+        # Is the request from the right Instance
+        if request.headers.get('X-Discourse-Instance') != "https://talk.wb-student.org":
+            return False
+
         # Check if the X-Discourse-Event-Signature is present
         if not 'X-Discourse-Event-Signature' in request.headers:
-            print("401 No Signature")
             return False
 
         # Generate the signature from the raw payload with sha256 and hmac
-        signature = hmac.new(key=bytes(HOOKTOKEN, 'utf-8'), msg=payload, digestmod=hashlib.sha256).hexdigest()
+        signature = hmac.new(key=bytes(HOOKTOKEN, 'utf-8'), msg=await request.read(), digestmod=hashlib.sha256).hexdigest()
         
         # Check if the signature is simular to the signature in the header by cutting of 'sha256'
         if signature != request.headers.get('X-Discourse-Event-Signature')[7:]:
