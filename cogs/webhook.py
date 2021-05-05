@@ -93,7 +93,8 @@ class Webserver(commands.Cog):
             return False
 
         # Generate the signature from the raw payload with sha256 and hmac
-        signature = hmac.new(key=bytes(HOOKTOKEN, 'utf-8'), msg=await request.read(), digestmod=hashlib.sha256).hexdigest()
+        payload = await request.read()
+        signature = hmac.new(key=bytes(HOOKTOKEN, 'utf-8'), msg=payload, digestmod=hashlib.sha256).hexdigest()
         
         # Check if the signature is simular to the signature in the header by cutting of 'sha256'
         if signature != request.headers.get('X-Discourse-Event-Signature')[7:]:
