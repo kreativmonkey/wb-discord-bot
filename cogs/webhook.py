@@ -69,15 +69,15 @@ class Webserver(commands.Cog):
             embed = discord.Embed(
                 title = data['topic']['title'],
                 description = '',
-                url = 'https://talk.wb-student.org/t/{}'.format(data['topic']['id']),
+                url = '{}/t/{}'.format(self.wb.BaseUrl(), data['topic']['id']),
                 color = self.wb.getCategorieColor(data['topic']['category_id']) # set the color to the color of the Discourse Categorie
             )
             embed.set_author( 
                     name="@{}".format(data['topic']['created_by']['username']), 
-                    url='https://talk.wb-student.org/u/{}/summary'.format(data['topic']['created_by']['username']),
-                    icon_url='https://talk.wb-student.org/uploads/default/original/1X/2e6b4f8ea9e4509ec4f99ca73a9906547e80aab0.png'
+                    url='{}/u/{}/summary'.format(self.wb.BaseUrl(), data['topic']['created_by']['username']),
+                    icon_url=f'{self.wb.BaseUrl()}/uploads/default/original/1X/2e6b4f8ea9e4509ec4f99ca73a9906547e80aab0.png'
             ) 
-            embed.set_thumbnail(url='https://talk.wb-student.org/uploads/default/original/1X/2e6b4f8ea9e4509ec4f99ca73a9906547e80aab0.png')
+            embed.set_thumbnail(url=f'{self.wb.BaseUrl()}/uploads/default/original/1X/2e6b4f8ea9e4509ec4f99ca73a9906547e80aab0.png')
             embed.set_footer(text=self.wb.getCategorieName(data['topic']['categorie_id']))
         
             # Embed muss dann noch erstellt werden. Aktuell haben wir den Titel, es könnte
@@ -93,7 +93,7 @@ class Webserver(commands.Cog):
     # The X-Discourse-Event-Signature consists of 'sha256=' hmac of raw payload.
     def authorizedRequest(self, request, payload):
         # Is the request from the right Instance
-        if request.headers.get('X-Discourse-Instance') != "https://talk.wb-student.org":
+        if request.headers.get('X-Discourse-Instance') != self.wb.BaseUrl():
             return False
 
         # Check if the X-Discourse-Event-Signature is present
