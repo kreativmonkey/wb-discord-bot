@@ -62,7 +62,7 @@ class Interaction(commands.Cog):
                     # Creating embedded message for the new added topic
                     embed = discord.Embed(
                         title = topic[0]['title'],
-                        description = '',
+                        description = re.sub(r"((?:http|https)://[\w+?\.\w+]+(?:[a-zA-Z0-9\~\!\@\#\$\%\^\&\*\(\)_\-\=\+\\\/\?\.\:\;\'\,]*)?)", r'<\1>' ,post['blurb']),
                         url = self.wb.BaseUrl() + 't/' + str(topicId),
                         color = self.wb.getCategorieColor(topic['category_id']) # set the color to the color of the Discourse Categorie
                     )
