@@ -12,6 +12,8 @@ import discord
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 
+from helper.wbdiscourse import WBDiscourse
+
 load_dotenv()
 GUILD = os.getenv('DISCORD_GUILD')
 HOOKTOKEN = os.getenv('WEBHOOK_TOKEN')
@@ -19,31 +21,12 @@ HOOKTOKEN = os.getenv('WEBHOOK_TOKEN')
 app = web.Application()
 routes = web.RouteTableDef()
 
-categories = {
-    9 : "Erfahrungsbericht", 
-    3 : "Teamtalk",
-    5 : "Modulthemen",
-    11 : "Tipps und Tricks",
-    7 : "Stammtisch",
-    12 : "WBH-Beschwerden",
-    10 : "Wissenssammlung",
-}
-
-colors = {
-    9 : discord.Colour.blurple(),
-    3 : discord.Colour.dark_orange(),
-    5 : discord.Colour.blue(),
-    11 : discord.Colour.orange(),
-    7 : discord.Colour.green(),
-    12 : discord.Colour.darker_gray(),
-    10 : discord.Colour.dark_red(),
-}
-
 class Webserver(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.web_server.start()
         self.guild = None 
+        self.wb = WBDiscourse()
 
         @commands.Cog.listener()
         async def on_ready(self):
@@ -87,7 +70,7 @@ class Webserver(commands.Cog):
                 title = data['topic']['title'],
                 description = '',
                 url = 'https://talk.wb-student.org/t/{}'.format(data['topic']['id']),
-                color = colors[data['topic']['category_id']] # set the color to the color of the Discourse Categorie
+                color = self.wb.getCategorieColor(data['topic']['category_id']) # set the color to the color of the Discourse Categorie
             )
             embed.set_author( 
                     name="@{}".format(data['topic']['created_by']['username']), 
@@ -95,7 +78,7 @@ class Webserver(commands.Cog):
                     icon_url='https://talk.wb-student.org/uploads/default/original/1X/2e6b4f8ea9e4509ec4f99ca73a9906547e80aab0.png'
             ) 
             embed.set_thumbnail(url='https://talk.wb-student.org/uploads/default/original/1X/2e6b4f8ea9e4509ec4f99ca73a9906547e80aab0.png')
-            embed.set_footer(text=categories[data['topic']['category_id']])
+            embed.set_footer(text=self.wb.getCategorieName(data['topic']['categorie_id']))
         
             # Embed muss dann noch erstellt werden. Aktuell haben wir den Titel, es könnte
             # auch noch ein paar andere Infos genutzt werden, die stehen aktuell unten als
