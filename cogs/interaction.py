@@ -42,9 +42,6 @@ class Interaction(commands.Cog):
         chatMessages = self.makeChatResponse(data, maxResult)
 
         for message in chatMessages:
-            # escape urls in blurb-string with beautiful regex so the urls wouldn't preview in discord-chat
-            escapedBlurb = re.sub(
-                r"((?:http|https)://[\w+?\.\w+]+(?:[a-zA-Z0-9\~\!\@\#\$\%\^\&\*\(\)_\-\=\+\\\/\?\.\:\;\'\,]*)?)", r'<\1>', message['blurb'])
             await ctx.send('**Title: ' + message['title'] + '**\r\n' + message['uri'] + '\r\n**Ausschnitt:**\r\n' + escapedBlurb)
 
     def makeChatResponse(self, jsonData, maxMessageCounter):
@@ -64,7 +61,7 @@ class Interaction(commands.Cog):
                     chatMessage = {}
                     chatMessage['title'] = topic[0]['title']
                     chatMessage['uri'] = BASEURL + 't/' + str(topicId)
-                    chatMessage['blurb'] = post['blurb']
+                    chatMessage['blurb'] = re.sub(r"((?:http|https)://[\w+?\.\w+]+(?:[a-zA-Z0-9\~\!\@\#\$\%\^\&\*\(\)_\-\=\+\\\/\?\.\:\;\'\,]*)?)", r'<\1>' ,post['blurb'])
                     result.append(chatMessage)
             else:
                 # if result reached the limit => breaking the law
