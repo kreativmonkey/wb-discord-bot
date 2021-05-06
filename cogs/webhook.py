@@ -30,13 +30,13 @@ categories = {
 }
 
 colors = {
-    9 : discord.Colour.blurple,
-    3 : discord.Colour.dark_orange,
-    5 : discord.Colour.blue,
-    11 : discord.Colour.orange,
-    7 : discord.Colour.green,
-    12 : discord.Colour.darker_gray,
-    10 : discord.Colour.dark_red,
+    9 : discord.Colour.blurple(),
+    3 : discord.Colour.dark_orange(),
+    5 : discord.Colour.blue(),
+    11 : discord.Colour.orange(),
+    7 : discord.Colour.green(),
+    12 : discord.Colour.darker_gray(),
+    10 : discord.Colour.dark_red(),
 }
 
 class Webserver(commands.Cog):
@@ -81,27 +81,26 @@ class Webserver(commands.Cog):
                 return web.Response(text=json.dumps("{ 'status' : 'no content' }"))
 
             channel = self.client.get_channel(channelid)
-            
 
-
+            # Creating embedded message for the new added topic
             embed = discord.Embed(
-                title = '@' + data['topic']['created_by']['username'], # Using title for the Author!
+                title = data['topic']['title'],
                 description = '',
                 url = 'https://talk.wb-student.org/t/{}'.format(data['topic']['id']),
                 color = colors[data['topic']['category_id']] # set the color to the color of the Discourse Categorie
             )
-            #"@{}".format(data['topic']['created_by']['username']), url='https://talk.wb-student.org/u/{}/summary'.format(data['topic']['created_by']['username'])
-            
-            # Using the author for the Title 
-            # this field is different to the rest and better to visualy highlight the title
-            embed.set_author(data['topic']['title'], url='https://talk.wb-student.org/t/{}'.format(data['topic']['id'])) 
+            embed.set_author( 
+                    name="@{}".format(data['topic']['created_by']['username']), 
+                    url='https://talk.wb-student.org/u/{}/summary'.format(data['topic']['created_by']['username']),
+                    icon_url='https://talk.wb-student.org/uploads/default/original/1X/2e6b4f8ea9e4509ec4f99ca73a9906547e80aab0.png'
+            ) 
             embed.set_thumbnail(url='https://talk.wb-student.org/uploads/default/original/1X/2e6b4f8ea9e4509ec4f99ca73a9906547e80aab0.png')
-            embed.set_footer(categories[data['topic']['category_id']])
+            embed.set_footer(text=categories[data['topic']['category_id']])
         
             # Embed muss dann noch erstellt werden. Aktuell haben wir den Titel, es könnte
             # auch noch ein paar andere Infos genutzt werden, die stehen aktuell unten als
             # Kommentar ;-)
-            await channel.send('Neues Thema auf Discourse', embed=embed)
+            await channel.send('**Neues Thema auf Discourse**', embed=embed)
             return web.Response(text=json.dumps("{ 'status' : 'success' }"))
 
         self.webserver_port = os.environ.get('PORT', 5000)
