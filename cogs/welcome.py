@@ -12,19 +12,19 @@ class Welcome(commands.Cog):
     
     def __init__(self, client):
         self.client = client
-
+       
     # Events
     @commands.Cog.listener()
     async def on_ready(self):
-        guild = discord.utils.get(self.client.guilds, name=GUILD)
+        self.guild = discord.utils.get(self.client.guilds, name=GUILD)
         
         print(
             f'{self.client.user} is connected to the following guild:\n'
-            f'{guild.name}(id: {guild.id})'
+            f'{self.guild.name}(id: {self.guild.id})'
         )    
 
-        channels = '\n - '.join([channel.name for channel in guild.channels])
-        print(f'Guild Channels:\n - {channels}')
+        # channels = '\n - '.join([channel.name for channel in guild.channels])
+        # print(f'Guild Channels:\n - {channels}')
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
@@ -38,7 +38,6 @@ class Welcome(commands.Cog):
     @commands.command()
     async def ping(self, ctx):
         await ctx.send('Pong!')
-
 
 
 def setup(client):
