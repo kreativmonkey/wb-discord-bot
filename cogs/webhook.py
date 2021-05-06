@@ -88,7 +88,7 @@ class Webserver(commands.Cog):
                 title = '@' + data['topic']['created_by']['username'], # Using title for the Author!
                 description = '',
                 url = 'https://talk.wb-student.org/t/{}'.format(data['topic']['id']),
-                color = colors[categories[data['topic']['category_id']]] # set the color to the color of the Discourse Categorie
+                color = colors[data['topic']['category_id']] # set the color to the color of the Discourse Categorie
             )
             #"@{}".format(data['topic']['created_by']['username']), url='https://talk.wb-student.org/u/{}/summary'.format(data['topic']['created_by']['username'])
             
