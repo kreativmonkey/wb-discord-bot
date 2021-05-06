@@ -30,7 +30,7 @@ categories = {
 }
 
 colors = {
-    9 : discord.Colour.blueple,
+    9 : discord.Colour.blurple,
     3 : discord.Colour.dark_orange,
     5 : discord.Colour.blue,
     11 : discord.Colour.orange,
@@ -84,12 +84,12 @@ class Webserver(commands.Cog):
             
 
 
-            embed = discord.Embed{
+            embed = discord.Embed(
                 title = '@' + data['topic']['created_by']['username'], # Using title for the Author!
                 description = '',
                 url = 'https://talk.wb-student.org/t/{}'.format(data['topic']['id']),
                 color = colors[categories[data['topic']['category_id']]] # set the color to the color of the Discourse Categorie
-            }
+            )
             #"@{}".format(data['topic']['created_by']['username']), url='https://talk.wb-student.org/u/{}/summary'.format(data['topic']['created_by']['username'])
             
             # Using the author for the Title 
