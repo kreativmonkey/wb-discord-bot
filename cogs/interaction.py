@@ -3,11 +3,12 @@ import discord
 import requests
 import json
 import re  # regex
+
 from datetime import datetime
 
 from discord.ext import commands
 from dotenv import load_dotenv
-
+from helper.wbdiscourse import WBDiscourse
 
 BASEURL = 'https://talk.wb-student.org/'
 
@@ -15,11 +16,11 @@ load_dotenv()
 APIKEY = os.getenv('API_KEY')
 APIUSERNAME = os.getenv('API_USERNAME')
 
-
 class Interaction(commands.Cog):
 
     def __init__(self, client):
         self.client = client
+        self.wb = WBDiscourse()
         print('Init Interactions')
 
     # search for a given value in the discourse forum under the BASEURL.
@@ -41,8 +42,9 @@ class Interaction(commands.Cog):
         data = r.json()
         chatMessages = self.makeChatResponse(data, maxResult)
 
+        await ctx.send(f'Suchergebnis für {searchValue}:')
         for message in chatMessages:
-            await ctx.send('**Title: ' + message['title'] + '**\r\n' + message['uri'] + '\r\n**Ausschnitt:**\r\n' + escapedBlurb)
+            await ctx.send(embed=message)
 
     def makeChatResponse(self, jsonData, maxMessageCounter):
         result = []
@@ -57,12 +59,21 @@ class Interaction(commands.Cog):
                     not x['closed'] or not x['archived']), jsonData['topics']))
 
                 if topic:
-                    # ...and append a new object to the result.
-                    chatMessage = {}
-                    chatMessage['title'] = topic[0]['title']
-                    chatMessage['uri'] = BASEURL + 't/' + str(topicId)
-                    chatMessage['blurb'] = re.sub(r"((?:http|https)://[\w+?\.\w+]+(?:[a-zA-Z0-9\~\!\@\#\$\%\^\&\*\(\)_\-\=\+\\\/\?\.\:\;\'\,]*)?)", r'<\1>' ,post['blurb'])
-                    result.append(chatMessage)
+                    # Creating embedded message for the new added topic
+                    embed = discord.Embed(
+                        title = topic[0]['title'],
+                        description = re.sub(r"((?:http|https)://[\w+?\.\w+]+(?:[a-zA-Z0-9\~\!\@\#\$\%\^\&\*\(\)_\-\=\+\\\/\?\.\:\;\'\,]*)?)", r'<\1>' ,post['blurb']),
+                        url = self.wb.BaseUrl() + 't/' + str(topicId),
+                        color = self.wb.getCategorieColor(topic['category_id']) # set the color to the color of the Discourse Categorie
+                    )
+                    embed.set_author( 
+                            name="@{}".format(post['username']), 
+                            url='https://talk.wb-student.org/u/{}/summary'.format(post['username']),
+                            icon_url='https://talk.wb-student.org/uploads/default/original/1X/2e6b4f8ea9e4509ec4f99ca73a9906547e80aab0.png' # Need to be changed to the Userprofileimage if possible
+                    ) 
+                    embed.set_footer(text=self.wb.getCategorieName(topic['categorie_id']))
+
+                    result.append(embed)
             else:
                 # if result reached the limit => breaking the law
                 break
