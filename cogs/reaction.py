@@ -48,7 +48,7 @@ class Reaction(commands.Cog):
                     description = \
                         '- Die Klausuren gehen **90 bis 120 Minuten**\n'\
                         '- Für den Verwaltungsaufwand werden **30 Minuten** gewährt\n'\
-                        '- Gesamtzeit für Klausur: **Klausurzeit + Verwaltungsaufwand**'\
+                        '- Gesamtzeit für Klausur: **Klausurzeit + Verwaltungsaufwand**\n'\
                         '- Der **Download** wird zum **Start der Klausur** freigeschaltet.\n'\
                         '- Es dürfen **keine OBK\'s auf Discord** gepostet werden\n'\
                         '\n'\
