@@ -62,7 +62,7 @@ class Reaction(commands.Cog):
                 ) 
                 embed.add_field(
                     name='Weitere Informationen:', 
-                    value='- Auf [Discourse](https://talk.wb-student.org/tag/obk) \n- In den [Hochschuhlnews](https://www.wb-online-campus.de/Neuigkeiten/Free/hochschul-news/index.html)', 
+                    value='- Auf [Discourse](https://talk.wb-student.org/tag/obk) \n- In den [Hochschulnews](https://www.wb-online-campus.de/Neuigkeiten/Free/hochschul-news/index.html)', 
                     inline=False
                 )
                 embed.add_field(
