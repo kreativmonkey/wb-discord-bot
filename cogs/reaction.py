@@ -1,22 +1,7 @@
-import os
 import discord
-import requests
-import json
-import re  # regex
-from datetime import datetime
 
 from discord.ext import commands
-from dotenv import load_dotenv
 
-
-BASEURL = 'https://talk.wb-student.org/'
-
-load_dotenv()
-APIKEY = os.getenv('API_KEY')
-APIUSERNAME = os.getenv('API_USERNAME')
-
-# TODO: 
-# - List of Keywords: Text to support multiple Keywords for one Text and support Multiple Texts
 
 class Reaction(commands.Cog):
 
@@ -31,9 +16,11 @@ class Reaction(commands.Cog):
         if message.author.bot:
             return
 
+        # TODO: add more keywords
         # react on keywords related to 'hzp' to show some informations about.
         hzpKeywords = ('hzp', 'hochschulzugangsprüfung', 'zugangsprüfung')
-        obkKeywords = ('obk', 'open book klausur', 'open-book-klausur', 'obk\'s', 'obks')
+        obkKeywords = ('obk', 'open book klausur',
+                       'open-book-klausur', 'obk\'s', 'obks')
 
         if any(keyWord in message.content.lower() for keyWord in hzpKeywords):
             # checks for last 25 messages, whether the bot already send this message in the last 10 days
@@ -44,35 +31,37 @@ class Reaction(commands.Cog):
             if await self.messageAlreadySendBefore(message.channel, '**Informationen zur OBK**'):
                 # Creating embedded message for the new added topic
                 embed = discord.Embed(
-                    title = 'Open Book Klausuren',
-                    description = \
-                        '- Die Klausuren gehen **90 bis 120 Minuten**\n'\
-                        '- Für den Verwaltungsaufwand werden **30 Minuten** gewährt\n'\
-                        '- Gesamtzeit für Klausur: **Klausurzeit + Verwaltungsaufwand**\n'\
-                        '- Der **Download** wird zum **Start der Klausur** freigeschaltet.\n'\
-                        '- Es dürfen **keine OBK\'s auf Discord** gepostet werden\n'\
-                        '\n'\
-                        'Bitte nehmt an Klausurtagen Rücksicht auf andere und besucht den Onlinecampus nur wenn notwendig',
-                    color = discord.Colour.gold(),
+                    title='Open Book Klausuren',
+                    description='- Die Klausuren gehen **90 bis 120 Minuten**\n'
+                    '- Für den Verwaltungsaufwand werden **30 Minuten** gewährt\n'
+                    '- Gesamtzeit für Klausur: **Klausurzeit + Verwaltungsaufwand**\n'
+                    '- Der **Download** wird zum **Start der Klausur** freigeschaltet.\n'
+                    '- Es dürfen **keine OBK\'s auf Discord** gepostet werden\n'
+                    '\n'
+                    'Bitte nehmt an Klausurtagen Rücksicht auf andere und besucht den Onlinecampus nur wenn notwendig',
+                    color=discord.Colour.gold(),
                 )
-                embed.set_author( 
-                        name="Helferlein", 
-                        url='',
-                        icon_url=''
-                ) 
+
+                embed.set_author(
+                    name="Helferlein",
+                    url='',
+                    icon_url=''
+                )
+
                 embed.add_field(
-                    name='Weitere Informationen:', 
-                    value='- Auf [Discourse](https://talk.wb-student.org/tag/obk) \n- In den [Hochschulnews](https://www.wb-online-campus.de/Neuigkeiten/Free/hochschul-news/index.html)', 
+                    name='Weitere Informationen:',
+                    value='- Auf [Discourse](https://talk.wb-student.org/tag/obk) \n- In den [Hochschulnews](https://www.wb-online-campus.de/Neuigkeiten/Free/hochschul-news/index.html)',
                     inline=False
                 )
+
                 embed.add_field(
-                    name='Klausurpapier', 
-                    value='Dieses wird vor der Klausur in den News veröffentlicht.', 
+                    name='Klausurpapier',
+                    value='Dieses wird vor der Klausur in den News veröffentlicht.',
                     inline=False
                 )
+
                 embed.set_footer(text='Information')
                 await message.channel.send('**Informationen zur OBK**', embed=embed)
-
 
     # checks channels last 25 messages whether the bot already send a messages, starts with <messageStart>, in the last 10 days
     async def messageAlreadySendBefore(self, channel, messageStart):
@@ -81,6 +70,7 @@ class Reaction(commands.Cog):
                 return False
 
         return True
+
 
 def setup(client):
     client.add_cog(Reaction(client))
