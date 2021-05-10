@@ -4,8 +4,6 @@ import requests
 import json
 import re  # regex
 
-from datetime import datetime
-
 from discord.ext import commands
 from dotenv import load_dotenv
 from helper.wbdiscourse import WBDiscourse
@@ -15,6 +13,7 @@ BASEURL = 'https://talk.wb-student.org/'
 load_dotenv()
 APIKEY = os.getenv('API_KEY')
 APIUSERNAME = os.getenv('API_USERNAME')
+
 
 class Interaction(commands.Cog):
 
@@ -31,7 +30,8 @@ class Interaction(commands.Cog):
         brief="Sucht nach einem Wert und gibt die gefundenen Beiträgen zurück."
     )
     async def search(self, ctx, searchValue, maxResult=3):
-        requestUrl = BASEURL + 'search.json'
+        requestUrl = self.wb.BaseUrl() + 'search.json'
+
         HEADERS = {'Api-Key': APIKEY, 'Api-Username': APIUSERNAME}
         # defining a params dict for the parameters to be sent to the API
         PARAMS = {'q': searchValue}
@@ -42,7 +42,7 @@ class Interaction(commands.Cog):
         data = r.json()
         chatMessages = self.makeChatResponse(data, maxResult)
 
-        await ctx.send(f'Suchergebnis für {searchValue}:')
+        await ctx.send(f'Suchergebnis für "{searchValue}":')
         for message in chatMessages:
             await ctx.send(embed=message)
 
@@ -61,17 +61,26 @@ class Interaction(commands.Cog):
                 if topic:
                     # Creating embedded message for the new added topic
                     embed = discord.Embed(
-                        title = topic[0]['title'],
-                        description = re.sub(r"((?:http|https)://[\w+?\.\w+]+(?:[a-zA-Z0-9\~\!\@\#\$\%\^\&\*\(\)_\-\=\+\\\/\?\.\:\;\'\,]*)?)", r'<\1>' ,post['blurb']),
-                        url = self.wb.BaseUrl() + 't/' + str(topicId),
-                        color = self.wb.getCategorieColor(topic['category_id']) # set the color to the color of the Discourse Categorie
+                        title=topic[0]['title'],
+                        description=re.sub(
+                            r"((?:http|https)://[\w+?\.\w+]+(?:[a-zA-Z0-9\~\!\@\#\$\%\^\&\*\(\)_\-\=\+\\\/\?\.\:\;\'\,]*)?)", r'<\1>', post['blurb']),
+                        url=self.wb.BaseUrl() + 't/' + str(topicId),
+                        # sets the color to the color of the Discourse Categorie
+                        color=self.wb.getCategorieColor(
+                            topic[0]['category_id'])
                     )
-                    embed.set_author( 
-                            name="@{}".format(post['username']), 
-                            url='https://talk.wb-student.org/u/{}/summary'.format(post['username']),
-                            icon_url='https://talk.wb-student.org/uploads/default/original/1X/2e6b4f8ea9e4509ec4f99ca73a9906547e80aab0.png' # Need to be changed to the Userprofileimage if possible
-                    ) 
-                    embed.set_footer(text=self.wb.getCategorieName(topic['categorie_id']))
+
+                    embed.set_author(
+                        name="@{}".format(post['username']),
+                        url='https://talk.wb-student.org/u/{}/summary'.format(
+                            post['username']),
+                        # Need to be changed to the Userprofileimage if possible
+                        icon_url='https://talk.wb-student.org/uploads/default/original/1X/2e6b4f8ea9e4509ec4f99ca73a9906547e80aab0.png'
+                    )
+
+                    embed.set_footer(
+                        text=self.wb.getCategorieName(topic[0]['category_id'])
+                    )
 
                     result.append(embed)
             else:
