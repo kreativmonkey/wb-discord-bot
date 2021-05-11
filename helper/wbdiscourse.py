@@ -16,19 +16,6 @@ from helper.exceptions import (
     DiscourseRateLimitedError,
 )
 
-load_dotenv()
-# PROTOKOLL = os.getenv('PROTOKOLL')
-PROTOKOLL = 'https://'
-# URL = os.getenv('URL')
-URL = 'talk.wb-student.org/'
-BASEURL = os.getenv('BASEURL')
-
-APIKEY = os.getenv('API_KEY')
-APIUSERNAME = os.getenv('API_USERNAME')
-
-# initialize global logger
-log = logging.getLogger("helper.WBDiscourse")
-
 # HTTP verbs to be used as non string literals
 DELETE = "DELETE"
 GET = "GET"
@@ -45,12 +32,8 @@ class WBDiscourse:
             timeout: optional timeout for the requests (in seconds)
         Returns:
         """
+        self.__loadEnv__()
 
-        self.prot = PROTOKOLL
-        self.url = URL
-        self.host = BASEURL if BASEURL else PROTOKOLL + URL
-        self.api_username = APIUSERNAME
-        self.api_key = APIKEY
         self.timeout = timeout
 
         self.categories = {
@@ -74,6 +57,26 @@ class WBDiscourse:
             12: discord.Colour.darker_gray(),
         }
 
+    def __loadEnv__(self):
+        """
+        Loads the required environment variables like url, api_key, etc. 
+        """
+        load_dotenv()
+        # PROTOKOLL = 'https://'
+        self.prot = os.getenv('PROTOKOLL')
+        # URL = 'talk.wb-student.org/'
+        self.url = os.getenv('URL')
+
+        BASEURL = os.getenv('BASEURL')
+
+        self.host = BASEURL if BASEURL else self.prot + self.url
+
+        self.api_key = os.getenv('API_KEY')
+        self.api_username = os.getenv('API_USERNAME')
+
+        # initialize global logger
+        self.log = logging.getLogger("helper.WBDiscourse")
+
     def getCategorieName(self, catID):
         # TODO: maybe use self.categories to get all categories from discourse server
         if catID in self.categories:
@@ -89,7 +92,7 @@ class WBDiscourse:
             return self.colors[5]
 
     def BaseUrl(self):
-        return self.prot + self.url
+        return self.host
 
     # --------------------------------     <start of API-Actions>     --------------------------------
     # The following functions are a python reproduction of the [Discourse-API](https://docs.discourse.org/)
@@ -565,18 +568,18 @@ class WBDiscourse:
     #     """
     #     return self._get("/t/{0}/{1}.json".format(topic_id, post_id), **kwargs)
 
-    # def posts_by_topic_id(self, topic_id, post_ids=None, **kwargs):
-    #     """
-    #     Get a set of posts from a topic
-    #     Args:
-    #         topic_id:
-    #         post_ids: a list of post ids from the topic stream
-    #         **kwargs:
-    #     Returns:
-    #     """
-    #     if post_ids:
-    #         kwargs["post_ids[]"] = post_ids
-    #     return self._get("/t/{0}/posts.json".format(topic_id), **kwargs)
+    def posts_by_topic_id(self, topic_id, post_ids=None, **kwargs):
+        """
+        Get a set of posts from a topic
+        Args:
+            topic_id:
+            post_ids: a list of post ids from the topic stream
+            **kwargs:
+        Returns:
+        """
+        if post_ids:
+            kwargs["post_ids[]"] = post_ids
+        return self._get("/t/{0}/posts.json".format(topic_id), **kwargs)
 
     # darksoul4626: have to edited => look at the openapi.json
     # def update_topic(self, topic_url, title, **kwargs):
@@ -1128,7 +1131,7 @@ class WBDiscourse:
         """
         override_request_kwargs = override_request_kwargs or {}
 
-        url = self.host + path
+        url = self.BaseUrl() + path
 
         headers = {
             "Accept": "application/json; charset=utf-8",
@@ -1156,8 +1159,8 @@ class WBDiscourse:
 
             response = requests.request(verb, url, **request_kwargs)
 
-            log.debug("response %s: %s", response.status_code,
-                      repr(response.text))
+            self.log.debug("response %s: %s", response.status_code,
+                           repr(response.text))
             if response.ok:
                 break
             if not response.ok:
@@ -1181,12 +1184,12 @@ class WBDiscourse:
                         if retry_count > 1:
                             time.sleep(wait_delay)
                         retry_count -= 1
-                        log.info(
+                        self.log.info(
                             "We have been rate limited and waited {0} seconds ({1} retries left)".format(
                                 wait_delay, retry_count
                             )
                         )
-                        log.debug("API returned {0}".format(rj))
+                        self.log.debug("API returned {0}".format(rj))
                         continue
                     else:
                         raise DiscourseClientError(msg, response=response)
