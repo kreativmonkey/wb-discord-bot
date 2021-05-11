@@ -1,18 +1,9 @@
-import os
 import discord
-import requests
 import json
 import re  # regex
 
 from discord.ext import commands
-from dotenv import load_dotenv
 from helper.wbdiscourse import WBDiscourse
-
-BASEURL = 'https://talk.wb-student.org/'
-
-load_dotenv()
-APIKEY = os.getenv('API_KEY')
-APIUSERNAME = os.getenv('API_USERNAME')
 
 
 class Interaction(commands.Cog):
@@ -32,19 +23,18 @@ class Interaction(commands.Cog):
     async def search(self, ctx, searchValue, maxResult=3):
         requestUrl = self.wb.BaseUrl() + 'search.json'
 
-        HEADERS = {'Api-Key': APIKEY, 'Api-Username': APIUSERNAME}
-        # defining a params dict for the parameters to be sent to the API
-        PARAMS = {'q': searchValue}
-        # sending get request and saving the response as response object
-        r = requests.get(url=requestUrl, params=PARAMS, headers=HEADERS)
+        # using the discourse api client to search on the discourse server
+        # and receive result as json
+        data = self.wb.search(searchValue)
 
-        # extracting data in json format and get the first 3 found results
-        data = r.json()
         chatMessages = self.makeChatResponse(data, maxResult)
 
-        await ctx.send(f'Suchergebnis für "{searchValue}":')
-        for message in chatMessages:
-            await ctx.send(embed=message)
+        if chatMessages:
+            await ctx.send(f'Suchergebnis für "{searchValue}":')
+            for message in chatMessages:
+                await ctx.send(embed=message)
+        else:
+            await ctx.send(f'Die Suche ergab keinen Treffer.')
 
     def makeChatResponse(self, jsonData, maxMessageCounter):
         result = []
