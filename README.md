@@ -1,3 +1,7 @@
+# Dsicord and Discourse connection Bot for WBH Communitys
+
+This is a community project to connect different WBH Community projects togather. 
+
 # Creating and appending a bot to a discord server 
 To create a bot, open the following url 
 * https://discord.com/developers/applications  
