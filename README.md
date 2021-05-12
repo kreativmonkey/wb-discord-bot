@@ -1,6 +1,6 @@
-# Dsicord and Discourse connection Bot for WBH Communitys
+# Discord and Discourse connection Bot for WBH Communitys
 
-This is a community project to connect different WBH Community projects togather. 
+This is a community project to connect different WBH Community projects together. 
 
 # Creating and appending a bot to a discord server 
 To create a bot, open the following url 
