@@ -6,8 +6,8 @@ import re  # regex
 
 from discord.ext import commands
 from dotenv import load_dotenv
-from ..helper.wbdiscourse import WBDiscourse
-from ..helper.extensions import Extensions
+from helper.wbdiscourse import WBDiscourse
+from helper.extensions import Extensions
 
 BASEURL = 'https://talk.wb-student.org/'
 
