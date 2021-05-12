@@ -6,7 +6,8 @@ import re  # regex
 
 from discord.ext import commands
 from dotenv import load_dotenv
-from helper.wbdiscourse import WBDiscourse
+from ..helper.wbdiscourse import WBDiscourse
+from ..helper.extensions import Extensions
 
 BASEURL = 'https://talk.wb-student.org/'
 
@@ -62,8 +63,7 @@ class Interaction(commands.Cog):
                     # Creating embedded message for the new added topic
                     embed = discord.Embed(
                         title=topic[0]['title'],
-                        description=re.sub(
-                            r"((?:http|https)://[\w+?\.\w+]+(?:[a-zA-Z0-9\~\!\@\#\$\%\^\&\*\(\)_\-\=\+\\\/\?\.\:\;\'\,]*)?)", r'<\1>', post['blurb']),
+                        description=Extensions.EscapeUrlsInText(post['blurb']),
                         url=self.wb.BaseUrl() + 't/' + str(topicId),
                         # sets the color to the color of the Discourse Categorie
                         color=self.wb.getCategorieColor(
