@@ -147,7 +147,7 @@ class WBDiscourse:
             The first topic as json
         """
         posts = self.posts_by_topic_id(topic_id, None, **kwards)
-        return posts_stream["posts"][0]
+        return posts['post_stream']['posts'][0]
 
     # endregion ------------------     <end of Topic-Functions>     ------------------
 

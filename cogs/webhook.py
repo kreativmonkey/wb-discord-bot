@@ -69,17 +69,17 @@ class Webserver(commands.Cog):
             # Creating embedded message for the new added topic
             embed = discord.Embed(
                 title = data['topic']['title'],
-                description = text[:250],
+                description = f'{text[:250]}...',
                 url = '{}/t/{}'.format(self.wb.BaseUrl(), data['topic']['id']),
                 color = self.wb.getCategorieColor(data['topic']['category_id']) # set the color to the color of the Discourse Categorie
             )
             embed.set_author( 
                     name="@{}".format(data['topic']['created_by']['username']), 
                     url='{}/u/{}/summary'.format(self.wb.BaseUrl(), data['topic']['created_by']['username']),
-                    icon_url=f'{self.wb.BaseUrl()}/uploads/default/original/1X/2e6b4f8ea9e4509ec4f99ca73a9906547e80aab0.png'
+                    icon_url='https://talk.wb-student.org/user_avatar/talk.wb-student.org/{}/100/1.png'.format(data['topic']['created_by']['username'])
             ) 
             embed.set_thumbnail(url=f'{self.wb.BaseUrl()}/uploads/default/original/1X/2e6b4f8ea9e4509ec4f99ca73a9906547e80aab0.png')
-            embed.set_footer(text=self.wb.getCategorieName(data['topic']['categorie_id']))
+            embed.set_footer(text=self.wb.getCategorieName(data['topic']['category_id']))
         
             # Embed muss dann noch erstellt werden. Aktuell haben wir den Titel, es könnte
             # auch noch ein paar andere Infos genutzt werden, die stehen aktuell unten als
