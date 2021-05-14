@@ -12,7 +12,8 @@ import discord
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 
-from helper.wbdiscourse import WBDiscourse
+from helper.wbdiscourse import WBDiscourse as wb
+from helper.extensions import Extensions as ex
 
 load_dotenv()
 GUILD = os.getenv('DISCORD_GUILD')
@@ -26,7 +27,6 @@ class Webserver(commands.Cog):
         self.client = client
         self.web_server.start()
         self.guild = None 
-        self.wb = WBDiscourse()
 
         @commands.Cog.listener()
         async def on_ready(self):
@@ -64,21 +64,21 @@ class Webserver(commands.Cog):
                 return web.Response(text=json.dumps("{ 'status' : 'no content' }"))
 
             channel = self.client.get_channel(channelid)
-
+            text = ex.ToMarkdown(wb.first_post_by_topic_id(data['topic']['id'])['cooked'])
             # Creating embedded message for the new added topic
             embed = discord.Embed(
                 title = data['topic']['title'],
-                description = '',
-                url = '{}/t/{}'.format(self.wb.BaseUrl(), data['topic']['id']),
-                color = self.wb.getCategorieColor(data['topic']['category_id']) # set the color to the color of the Discourse Categorie
+                description = text[:250],
+                url = '{}/t/{}'.format(wb.BaseUrl(), data['topic']['id']),
+                color = wb.getCategorieColor(data['topic']['category_id']) # set the color to the color of the Discourse Categorie
             )
             embed.set_author( 
                     name="@{}".format(data['topic']['created_by']['username']), 
-                    url='{}/u/{}/summary'.format(self.wb.BaseUrl(), data['topic']['created_by']['username']),
-                    icon_url=f'{self.wb.BaseUrl()}/uploads/default/original/1X/2e6b4f8ea9e4509ec4f99ca73a9906547e80aab0.png'
+                    url='{}/u/{}/summary'.format(wb.BaseUrl(), data['topic']['created_by']['username']),
+                    icon_url=f'{wb.BaseUrl()}/uploads/default/original/1X/2e6b4f8ea9e4509ec4f99ca73a9906547e80aab0.png'
             ) 
-            embed.set_thumbnail(url=f'{self.wb.BaseUrl()}/uploads/default/original/1X/2e6b4f8ea9e4509ec4f99ca73a9906547e80aab0.png')
-            embed.set_footer(text=self.wb.getCategorieName(data['topic']['categorie_id']))
+            embed.set_thumbnail(url=f'{wb.BaseUrl()}/uploads/default/original/1X/2e6b4f8ea9e4509ec4f99ca73a9906547e80aab0.png')
+            embed.set_footer(text=wb.getCategorieName(data['topic']['categorie_id']))
         
             # Embed muss dann noch erstellt werden. Aktuell haben wir den Titel, es könnte
             # auch noch ein paar andere Infos genutzt werden, die stehen aktuell unten als
@@ -93,7 +93,7 @@ class Webserver(commands.Cog):
     # The X-Discourse-Event-Signature consists of 'sha256=' hmac of raw payload.
     def authorizedRequest(self, request, payload):
         # Is the request from the right Instance
-        if request.headers.get('X-Discourse-Instance') != self.wb.BaseUrl():
+        if request.headers.get('X-Discourse-Instance') != wb.BaseUrl():
             return False
 
         # Check if the X-Discourse-Event-Signature is present
