@@ -68,7 +68,7 @@ class Webserver(commands.Cog):
             channel = self.client.get_channel(channelid)
         
             # sending the message to the cannel
-            await channel.send('**Neues Thema auf Discourse**', embed=wb.embed_from_topic_json(data))
+            await channel.send('**Neues Thema auf Discourse**', embed=self.wb.embed_from_topic_json(data))
             return web.Response(text=json.dumps("{ 'status' : 'success' }"))
 
         self.webserver_port = os.environ.get('PORT', 5000)
