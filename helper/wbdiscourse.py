@@ -94,6 +94,7 @@ class WBDiscourse:
     def BaseUrl(self):
         return self.host
 
+    
     # --------------------------------     <start of API-Actions>     --------------------------------
     # The following functions are a python reproduction of the [Discourse-API](https://docs.discourse.org/)
     # The official discour_api repository can be found [here](https://github.com/discourse/discourse_api)
@@ -135,6 +136,18 @@ class WBDiscourse:
         if post_ids:
             kwargs["post_ids[]"] = post_ids
         return self._get("/t/{0}/posts.json".format(topic_id), **kwargs)
+
+    def first_post_by_topic_id(self, topic_id, **kwards):
+        """
+        Same as posts_by_topic_id
+        Args:
+            topic_id:
+            **kwargs:
+        Returns:
+            The first topic as json
+        """
+        posts = self.posts_by_topic_id(topic_id, None, **kwards)
+        return posts_stream["posts"][0]
 
     # endregion ------------------     <end of Topic-Functions>     ------------------
 

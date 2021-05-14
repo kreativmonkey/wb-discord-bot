@@ -1,6 +1,9 @@
 import re
 
 
+from markdownify import markdownify as md
+
+
 class Extensions:
     """
     There is no reason to create an instance of this class, 
@@ -9,3 +12,7 @@ class Extensions:
     @staticmethod
     def EscapeUrlsInText(text):
         return re.sub(r"((?:http|https)://[\w+?\.\w+]+(?:[a-zA-Z0-9\~\!\@\#\$\%\^\&\*\(\)_\-\=\+\\\/\?\.\:\;\'\,]*)?)", r'<\1>', text)
+
+    @staticmethod
+    def ToMarkdown(text):
+        return md(text)
