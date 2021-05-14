@@ -94,6 +94,29 @@ class WBDiscourse:
     def BaseUrl(self):
         return self.host
 
+    def embed_from_topic_json(self, json_data):
+        # Creating embedded message for the new added topic
+        embed = discord.Embed(
+            title = json_data['topic']['title'],
+
+            # getting the first 250 char from the first topic post
+            description = '{}...'.format(ex.ToMarkdown(self.first_post_by_topic_id(json_data['topic']['id'])['cooked'])[:250]),
+            
+            # direct url to the topic by using the topic id
+            url = '{}/t/{}'.format(self.BaseUrl(), json_data['topic']['id']),
+
+            # setting the colour to match the colour of the discourse category
+            color = self.getCategorieColor(json_data['topic']['category_id']) 
+        )
+        embed.set_author( 
+            name="@{}".format(json_data['topic']['created_by']['username']), 
+            url='{}/u/{}/summary'.format(self.BaseUrl(), json_data['topic']['created_by']['username']),
+            icon_url='https://talk.wb-student.org/user_avatar/talk.wb-student.org/{}/100/1.png'.format(json_data['topic']['created_by']['username'])
+        ) 
+        embed.set_thumbnail(url=f'{self.BaseUrl()}/uploads/default/original/1X/2e6b4f8ea9e4509ec4f99ca73a9906547e80aab0.png')
+        embed.set_footer(text=self.getCategorieName(json_data['topic']['category_id']))
+
+        return embed
     
     # --------------------------------     <start of API-Actions>     --------------------------------
     # The following functions are a python reproduction of the [Discourse-API](https://docs.discourse.org/)

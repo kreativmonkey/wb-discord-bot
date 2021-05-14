@@ -46,45 +46,29 @@ class Webserver(commands.Cog):
                 print('401 Unauthorized')
                 return web.Response(text=json.dumps("{ 'status' : 'unauthorized' }"))
 
+            # filter webhook with wrong event-type
             if request.headers.get('X-Discourse-Event-Type') != "topic":
                 print("202 Wrong Event-Type")
                 return web.Response(text=json.dumps("{ 'status' : 'wrong event type' }"))
 
+            # filter webhook with wrong event
             if request.headers.get('X-Discourse-Event') != "topic_created":
                 print("202 Wrong Event")
                 return web.Response(text=json.dumps("{ 'status' : 'wrong event' }"))
 
+            # getting request json data
             data = await request.json()
 
-            # Hier muss über tags iteriert werden. Ich denke es sollte erstmal passen
-            # wenn man nur auf den ersten Channel reagiert der existiert,
-            # also vermutlich mit nem lambda ausdruck oder so umsetzen....
-            tags = data['topic']['tags']
-            channelid = self.getDiscordChannelId(tags)
+            # search for the channel_id by topic tags
+            channelid = self.getDiscordChannelId(data['topic']['tags'])
             if channelid == None:
                 return web.Response(text=json.dumps("{ 'status' : 'no content' }"))
 
+            # get the channel from the channel_id to send the message
             channel = self.client.get_channel(channelid)
-            text = ex.ToMarkdown(self.wb.first_post_by_topic_id(data['topic']['id'])['cooked'])
-            # Creating embedded message for the new added topic
-            embed = discord.Embed(
-                title = data['topic']['title'],
-                description = f'{text[:250]}...',
-                url = '{}/t/{}'.format(self.wb.BaseUrl(), data['topic']['id']),
-                color = self.wb.getCategorieColor(data['topic']['category_id']) # set the color to the color of the Discourse Categorie
-            )
-            embed.set_author( 
-                    name="@{}".format(data['topic']['created_by']['username']), 
-                    url='{}/u/{}/summary'.format(self.wb.BaseUrl(), data['topic']['created_by']['username']),
-                    icon_url='https://talk.wb-student.org/user_avatar/talk.wb-student.org/{}/100/1.png'.format(data['topic']['created_by']['username'])
-            ) 
-            embed.set_thumbnail(url=f'{self.wb.BaseUrl()}/uploads/default/original/1X/2e6b4f8ea9e4509ec4f99ca73a9906547e80aab0.png')
-            embed.set_footer(text=self.wb.getCategorieName(data['topic']['category_id']))
         
-            # Embed muss dann noch erstellt werden. Aktuell haben wir den Titel, es könnte
-            # auch noch ein paar andere Infos genutzt werden, die stehen aktuell unten als
-            # Kommentar ;-)
-            await channel.send('**Neues Thema auf Discourse**', embed=embed)
+            # sending the message to the cannel
+            await channel.send('**Neues Thema auf Discourse**', embed=wb.embed_from_topic_json(data))
             return web.Response(text=json.dumps("{ 'status' : 'success' }"))
 
         self.webserver_port = os.environ.get('PORT', 5000)
