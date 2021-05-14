@@ -8,6 +8,7 @@ import time
 import requests
 
 from datetime import timedelta, datetime
+from helper.extensions import Extensions as ex
 
 from helper.exceptions import (
     DiscourseError,
