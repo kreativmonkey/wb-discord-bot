@@ -1,10 +1,16 @@
 import discord
 import json
 import re  # regex
+import os
+from discord.channel import TextChannel
+from dotenv import load_dotenv
 
 from discord.ext import commands
 from helper.wbdiscourse import WBDiscourse
 from helper.extensions import Extensions
+
+# TODO Das abfragen der Environment-Variablen ggf. global umsetzen und darauf zugreifen.
+load_dotenv()
 
 
 class Interaction(commands.Cog):
@@ -13,6 +19,32 @@ class Interaction(commands.Cog):
         self.client = client
         self.wb = WBDiscourse()
         print('Init Interactions')
+
+    @commands.has_permissions(administrator=True)
+    @commands.command(name='listRoles')
+    async def listRoles(self, ctx):
+        GUILD = os.getenv('DISCORD_GUILD')
+        self.guild = discord.utils.get(self.client.guilds, name=GUILD)
+        await ctx.send("\r\n".join([str(r.name + ': ' + str(r.id)) if r.name != '@everyone' else '' for r in self.guild.roles]))
+
+    @commands.has_permissions(administrator=True)
+    @commands.command(name='assignRoleToChannels')
+    async def assignRoleToChannels(self, ctx, *, roleName):
+        print('roleName:' + roleName)
+        GUILD = os.getenv('DISCORD_GUILD')
+        self.guild = discord.utils.get(self.client.guilds, name=GUILD)
+        role = discord.utils.get(self.guild.roles, name=roleName)
+        for channel in self.guild.channels:
+            print(channel.name)
+            if type(channel) is TextChannel:
+                # TODO Funktioniert so erstmal... aber bei den Berechtigungen muss nochmal geschaut werden.
+                # TODO Des Weiteren müsste auch eine Methode erstellt werden, um die Rolle wieder aus allen Channels zu entfernen. ^^
+                overwrite = discord.PermissionOverwrite(
+                    read_messages=True, send_messages=True)
+                await channel.set_permissions(role, overwrite=overwrite)
+                await ctx.send('role assigned to channel: ' + channel.name)
+
+        # await ctx.send('role assigned to channel: ' + ch.name)
 
     # search for a given value in the discourse forum under the BASEURL.
     # to search for posts with tags the searchValue can be like 'tag:sei,bsra'
