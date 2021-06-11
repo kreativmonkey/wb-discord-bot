@@ -37,6 +37,7 @@ class Interaction(commands.Cog):
         for channel in self.guild.channels:
             print(channel.name)
             if type(channel) is TextChannel:
+                # TODO der Channel muss auch noch geprüft werden, ob dieser 'Private' ist, ansonsten wird die Rolle auch einem normalen Channel zugewiesen .. macht vllt nicht so viel Sinn ^^
                 # TODO Funktioniert so erstmal... aber bei den Berechtigungen muss nochmal geschaut werden.
                 # TODO Des Weiteren müsste auch eine Methode erstellt werden, um die Rolle wieder aus allen Channels zu entfernen. ^^
                 overwrite = discord.PermissionOverwrite(
